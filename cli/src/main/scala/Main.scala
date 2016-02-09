@@ -33,7 +33,11 @@ object Args {
     | Available commands:
     |   build
     |   jedit
-    |   report FILE [FILES ...]
+    |   report [--format FORMAT] FILE [FILES ...]
+    |
+    | Available formats:
+    |   raw-xml (default)
+    |   x-ray
     |""".stripMargin
 
 }

@@ -9,29 +9,33 @@ import edu.tum.cs.isabelle.api._
 
 object Report extends Command {
 
-  def UseThysMarkup(home: Path) = new Operation[List[String], Unit]("use_thys") {
-    def prepare(args: List[String]): (XML.Tree, Observer[Unit]) = {
-      val tree = Codec[List[String]].encode(args)
-      println(s"<?xml version='1.0' ?>\n<dump home='$home'>\n")
-      lazy val observer: Observer[Unit] = Observer.More(msg => {
-        println(msg.pretty)
-        observer
-      }, _ => {
-        println("\n</dump>")
-        Observer.Success(ProverResult.Success(()))
-      })
+  sealed abstract class Format
+  case object RawXML extends Format
+  case object XRay extends Format
 
-      (tree, observer)
-    }
+  def print(reports: Reports, home: Path, format: Format): Unit = format match {
+    case RawXML =>
+      println(s"<?xml version='1.0' ?>\n<dump home='$home'>\n")
+      reports.items.foreach(tree => println(tree.pretty(2)))
+      println("\n</dump>")
+    case XRay =>
+      println(reports.interpret(home).pretty)
   }
 
   def run(bundle: Bundle, args: List[String])(implicit ec: ExecutionContext): Future[Unit] = {
+    val (format, files) = args match {
+      case "--format" :: "raw-xml" :: files => (RawXML, files)
+      case "--format" :: "x-ray" :: files => (XRay, files)
+      case "--format" :: _ => sys.error("unknown format")
+      case _ => (RawXML, args)
+    }
+
     for {
       s <- System.create(bundle.env, bundle.configuration)
-      _ <- s.invoke(UseThysMarkup(bundle.env.home))(args)
+      r <- s.invoke(Operation.UseThysReports)(files)
       _ <- s.dispose
     }
-    yield ()
+    yield print(r.unsafeGet, bundle.env.home, format)
   }
 
 }

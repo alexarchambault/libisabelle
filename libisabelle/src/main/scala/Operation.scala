@@ -75,6 +75,18 @@ object Operation {
    */
   val UseThys = implicitly[List[String], Unit]("use_thys")
 
+  val UseThysReports: Operation[List[String], Reports] = new Operation[List[String], Reports]("use_thys") {
+    def prepare(args: List[String]): (XML.Tree, Observer[Reports]) = {
+      val tree = Codec[List[String]].encode(args)
+      def observer(init: Reports): Observer[Reports] = Observer.More(
+        step = { msg => observer(init.update(msg)) },
+        done = { _ => Observer.Success(ProverResult.Success(init)) }
+      )
+
+      (tree, observer(Reports.empty))
+    }
+  }
+
   protected[isabelle] val UseThys_Java =
     Operation.simple("use_thys",
       Codec[List[String]].transform[java.util.List[String]](_.asJava, _.asScala.toList),
