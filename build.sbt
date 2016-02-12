@@ -119,7 +119,10 @@ lazy val libisabelle = project
   .settings(warningSettings)
   .settings(acyclicSettings)
   .settings(Seq(
-    libraryDependencies += "org.spire-math" %% "cats-core" % "0.3.0"
+    libraryDependencies ++= Seq(
+      "org.spire-math" %% "cats-core" % "0.3.0",
+      "com.lihaoyi" %% "scalatags" % "0.5.4"
+    )
   ))
 
 lazy val setup = project.in(file("setup"))

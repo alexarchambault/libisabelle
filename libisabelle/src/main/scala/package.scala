@@ -5,6 +5,8 @@ import scala.util._
 
 import edu.tum.cs.isabelle.api.XML
 
+import scalatags.Text
+
 import acyclic.file
 
 package object isabelle {
@@ -27,5 +29,7 @@ package object isabelle {
       new CancellableFuture(promise, () => u.foreach(_.doCancel()))
     }
   }
+
+  type HTML = Text.TypedTag[String]
 
 }
